@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Planner Semanal (Colaborativo)</title>
+
   <style>
     :root{
       --bg:#f4f4f4;
@@ -114,4 +115,969 @@
       gap:8px;
       align-items:center;
       background: var(--card);
-      border: 1px solid
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow);
+    }
+    .search input{
+      border:0;
+      outline:none;
+      background:transparent;
+      color: var(--text);
+      min-width: 240px;
+    }
+
+    .planner{
+      max-width: 1150px;
+      margin: 0 auto 18px;
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .day{
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 180px;
+      color:#fff;
+      position:relative;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .day[data-day="sabado"]{ color:#111; }
+    .dayHeader{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .dayHeader h2{
+      margin:0;
+      font-size: 16px;
+      padding-bottom:6px;
+      border-bottom: 1px solid rgba(255,255,255,.35);
+    }
+    .day[data-day="sabado"] .dayHeader h2{
+      border-bottom-color: rgba(0,0,0,.25);
+    }
+    .count{
+      font-size: 12px;
+      opacity:.95;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.2);
+      white-space:nowrap;
+    }
+    .day[data-day="sabado"] .count{
+      background: rgba(255,255,255,.35);
+      border-color: rgba(0,0,0,.15);
+    }
+
+    .dayActions{
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      margin-bottom: 6px;
+    }
+    .mini{
+      font-size: 12px;
+      border-radius: 10px;
+      padding: 6px 8px;
+      cursor:pointer;
+      border: 1px solid rgba(255,255,255,.25);
+      background: rgba(0,0,0,.15);
+      color:#fff;
+    }
+    .day[data-day="sabado"] .mini{
+      background: rgba(255,255,255,.30);
+      border-color: rgba(0,0,0,.15);
+      color:#111;
+    }
+
+    .tasks{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-height: 90px;
+      padding: 6px 2px 2px;
+    }
+
+    .day.dragover .tasks{
+      outline: 2px dashed rgba(255,255,255,.55);
+      outline-offset: 6px;
+      background: var(--drop);
+      border-radius: 12px;
+    }
+    .day[data-day="sabado"].dragover .tasks{
+      outline-color: rgba(0,0,0,.35);
+    }
+
+    .task{
+      border-radius: 10px;
+      padding: 8px 10px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      background: var(--taskbg);
+      border: 1px solid var(--taskBorder);
+      cursor: grab;
+      user-select:none;
+    }
+    .task:active{ cursor: grabbing; }
+    .taskLeft{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      min-width: 0;
+      flex: 1;
+    }
+    .time{
+      font-weight: 800;
+      font-size: 12px;
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.2);
+      white-space:nowrap;
+      flex-shrink:0;
+    }
+    .day[data-day="sabado"] .time{
+      background: rgba(255,255,255,.45);
+      border-color: rgba(0,0,0,.12);
+      color:#111;
+    }
+    .desc{
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: break-word;
+    }
+    .task.done .desc{
+      text-decoration: line-through;
+      opacity: .85;
+    }
+    .taskRight{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      flex-shrink:0;
+    }
+    .iconBtn{
+      border: 1px solid rgba(255,255,255,.25);
+      background: rgba(0,0,0,.15);
+      color:#fff;
+      border-radius: 10px;
+      padding: 6px 8px;
+      cursor:pointer;
+      font-size: 12px;
+    }
+    .day[data-day="sabado"] .iconBtn{
+      background: rgba(255,255,255,.30);
+      border-color: rgba(0,0,0,.15);
+      color:#111;
+    }
+
+    .formWrap{
+      max-width: 680px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .formWrap h3{ margin:0 0 10px; }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.6fr .7fr .9fr;
+      gap:10px;
+    }
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    input, select{
+      width:100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline:none;
+      background: transparent;
+      color: var(--text);
+    }
+    .formActions{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .hint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .repeatDays{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .repeatDays label{
+      font-size: 12px;
+      cursor: pointer;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      user-select:none;
+    }
+
+    .segunda { background: #4e79a7; }
+    .terca   { background: #59a14f; }
+    .quarta  { background: #f28e2b; }
+    .quinta  { background: #e15759; }
+    .sexta   { background: #76b7b2; }
+    .sabado  { background: #edc949; }
+    .domingo { background: #af7aa1; }
+
+    .backdrop{
+      position: fixed; inset:0;
+      background: rgba(0,0,0,.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 16px;
+      z-index: 99;
+    }
+    .modal{
+      width: min(520px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      color: var(--text);
+    }
+    .modal h4{ margin:0 0 10px; }
+    .modal .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .modalActions{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <h1>Planner Semanal</h1>
+
+    <div class="controls">
+      <div class="search" title="Buscar em todas as tarefas">
+        🔎 <input id="searchInput" type="text" placeholder="Buscar tarefa...">
+      </div>
+
+      <span class="chip" id="syncChip" title="Status de sincronização">
+        <span class="dot" id="syncDot"></span>
+        <span id="syncText">Inicializando…</span>
+      </span>
+
+      <span class="chip" id="totalChip">Total: 0</span>
+      <button class="btn secondary" id="themeBtn" type="button">🌗 Tema</button>
+      <button class="btn danger" id="clearAllBtn" type="button">🧹 Limpar semana</button>
+    </div>
+  </div>
+
+  <div class="planner" id="planner">
+    <div class="day segunda" data-day="segunda" id="segunda">
+      <div class="dayHeader">
+        <h2>Segunda</h2><span class="count" id="count-segunda">0</span>
+      </div>
+      <div class="dayActions">
+        <button class="mini" type="button" data-clear-day="segunda">Limpar dia</button>
+      </div>
+      <div class="tasks" data-drop="segunda"></div>
+    </div>
+
+    <div class="day terca" data-day="terca" id="terca">
+      <div class="dayHeader">
+        <h2>Terça</h2><span class="count" id="count-terca">0</span>
+      </div>
+      <div class="dayActions">
+        <button class="mini" type="button" data-clear-day="terca">Limpar dia</button>
+      </div>
+      <div class="tasks" data-drop="terca"></div>
+    </div>
+
+    <div class="day quarta" data-day="quarta" id="quarta">
+      <div class="dayHeader">
+        <h2>Quarta</h2><span class="count" id="count-quarta">0</span>
+      </div>
+      <div class="dayActions">
+        <button class="mini" type="button" data-clear-day="quarta">Limpar dia</button>
+      </div>
+      <div class="tasks" data-drop="quarta"></div>
+    </div>
+
+    <div class="day quinta" data-day="quinta" id="quinta">
+      <div class="dayHeader">
+        <h2>Quinta</h2><span class="count" id="count-quinta">0</span>
+      </div>
+      <div class="dayActions">
+        <button class="mini" type="button" data-clear-day="quinta">Limpar dia</button>
+      </div>
+      <div class="tasks" data-drop="quinta"></div>
+    </div>
+
+    <div class="day sexta" data-day="sexta" id="sexta">
+      <div class="dayHeader">
+        <h2>Sexta</h2><span class="count" id="count-sexta">0</span>
+      </div>
+      <div class="dayActions">
+        <button class="mini" type="button" data-clear-day="sexta">Limpar dia</button>
+      </div>
+      <div class="tasks" data-drop="sexta"></div>
+    </div>
+
+    <div class="day sabado" data-day="sabado" id="sabado">
+      <div class="dayHeader">
+        <h2>Sábado</h2><span class="count" id="count-sabado">0</span>
+      </div>
+      <div class="dayActions">
+        <button class="mini" type="button" data-clear-day="sabado">Limpar dia</button>
+      </div>
+      <div class="tasks" data-drop="sabado"></div>
+    </div>
+
+    <div class="day domingo" data-day="domingo" id="domingo">
+      <div class="dayHeader">
+        <h2>Domingo</h2><span class="count" id="count-domingo">0</span>
+      </div>
+      <div class="dayActions">
+        <button class="mini" type="button" data-clear-day="domingo">Limpar dia</button>
+      </div>
+      <div class="tasks" data-drop="domingo"></div>
+    </div>
+  </div>
+
+  <div class="formWrap">
+    <h3>Adicionar tarefa</h3>
+
+    <div class="grid">
+      <div>
+        <label for="taskInput">Tarefa</label>
+        <input id="taskInput" type="text" placeholder="Ex.: Preparar jantar, revisar planilha, etc.">
+      </div>
+      <div>
+        <label for="timeInput">Horário</label>
+        <input id="timeInput" type="time">
+      </div>
+      <div>
+        <label>Dias da semana</label>
+        <div class="repeatDays">
+          <label><input type="checkbox" value="segunda"> Segunda</label>
+          <label><input type="checkbox" value="terca"> Terça</label>
+          <label><input type="checkbox" value="quarta"> Quarta</label>
+          <label><input type="checkbox" value="quinta"> Quinta</label>
+          <label><input type="checkbox" value="sexta"> Sexta</label>
+          <label><input type="checkbox" value="sabado"> Sábado</label>
+          <label><input type="checkbox" value="domingo"> Domingo</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="formActions">
+      <button class="btn" id="addBtn" type="button">➕ Adicionar</button>
+    </div>
+
+    <div class="hint">
+      • Você pode <b>arrastar</b> uma tarefa para outro dia. <br/>
+      • Clique em ✅ para concluir, ✏️ para editar, 🗑️ para excluir. <br/>
+      • Offline funciona; quando voltar internet, sincroniza.
+    </div>
+  </div>
+
+  <!-- Modal de edição -->
+  <div class="backdrop" id="backdrop">
+    <div class="modal">
+      <h4>Editar tarefa</h4>
+      <div style="display:grid; gap:10px;">
+        <div>
+          <label for="editTask">Tarefa</label>
+          <input id="editTask" type="text">
+        </div>
+        <div class="grid2">
+          <div>
+            <label for="editTime">Horário</label>
+            <input id="editTime" type="time">
+          </div>
+          <div>
+            <label for="editDay">Dia</label>
+            <select id="editDay">
+              <option value="segunda">Segunda</option>
+              <option value="terca">Terça</option>
+              <option value="quarta">Quarta</option>
+              <option value="quinta">Quinta</option>
+              <option value="sexta">Sexta</option>
+              <option value="sabado">Sábado</option>
+              <option value="domingo">Domingo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn secondary" id="cancelEdit" type="button">Cancelar</button>
+        <button class="btn" id="saveEdit" type="button">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========================
+   CONFIG COLABORATIVO (CORS OK no GitHub Pages)
+========================= */
+const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLj9_UCLZHpeoPFyMuxFefPozAnBR0WY4DUzMhULUhmpv8GSKQgoL_rRt-eIXAp9M5opD4e6grXGqopSPoB6RWSGiR37_xmn7t2n_M0Sd60S5JIcfxHsxnHoAj7AVABa975mbu8PxrmJZX2l9130_UvGb-T5W2tam6kmdv-jVkKcvs42FTYRtIEtpTzlPBjB8nR3HQhK7qdQqM_uxcjBpKs_FpJnp9dcxZG0Gl7XqLTwqhGmprgl2-PCOHw6xIYBlU60JkR5Mm-1SCGJhLL_hSGfnajvOCRSxsTbadwbsYDxxw4FpYQ_ufLs9oYvMA&lib=MxRFugE6ugbLM8gKWBSAeu-k7ICyO-Fwk";
+const SYNC_EVERY_MS = 8000;
+
+function withAction(baseUrl, action){
+  const sep = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${sep}action=${encodeURIComponent(action)}&t=${Date.now()}`;
+}
+
+/* =========================
+   API helpers
+========================= */
+async function apiGet(action){
+  const url = withAction(API_URL, action);
+  const res = await fetch(url, { method:"GET" });
+  if(!res.ok) throw new Error("GET falhou");
+  return res.json();
+}
+async function apiPost(payload){
+  const body = new URLSearchParams();
+  Object.entries(payload || {}).forEach(([k,v]) => body.append(k, String(v)));
+
+  const res = await fetch(API_URL, { method:"POST", body });
+  if(!res.ok) throw new Error("POST falhou");
+  return res.json();
+}
+
+/* =========================
+   Persistência local + fila
+========================= */
+const STORAGE_KEY = "planner_semanal_v2_collab";
+const THEME_KEY = "planner_theme_v1";
+const DAYS = ["segunda","terca","quarta","quinta","sexta","sabado","domingo"];
+
+let state = {
+  tasks: [],
+  pendingDeletes: [],
+  pendingClearDays: [],
+  pendingClearAll: false
+};
+
+function uid(){
+  return Math.random().toString(16).slice(2) + Date.now().toString(16);
+}
+function localId(){
+  return "local_" + uid();
+}
+function isLocalOnlyId(id){
+  return String(id || "").startsWith("local_");
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && Array.isArray(parsed.tasks)) state.tasks = parsed.tasks;
+      if(parsed && Array.isArray(parsed.pendingDeletes)) state.pendingDeletes = parsed.pendingDeletes;
+      if(parsed && Array.isArray(parsed.pendingClearDays)) state.pendingClearDays = parsed.pendingClearDays;
+      if(parsed && typeof parsed.pendingClearAll === "boolean") state.pendingClearAll = parsed.pendingClearAll;
+    }
+  }catch(e){}
+}
+
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadTheme(){
+  const t = localStorage.getItem(THEME_KEY) || "light";
+  document.documentElement.setAttribute("data-theme", t);
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute("data-theme") || "light";
+  const next = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem(THEME_KEY, next);
+}
+
+/* =========================
+   UI status
+========================= */
+function setSyncStatus(kind, text){
+  const dot = document.getElementById("syncDot");
+  const label = document.getElementById("syncText");
+  if(!dot || !label) return;
+
+  dot.classList.remove("ok","warn","bad");
+  if(kind === "ok") dot.classList.add("ok");
+  else if(kind === "warn") dot.classList.add("warn");
+  else if(kind === "bad") dot.classList.add("bad");
+
+  label.textContent = text;
+}
+
+/* merge: “mais recente ganha” por updatedAt */
+function mergeByUpdatedAt(localTasks, remoteTasks){
+  const map = new Map();
+  for(const t of localTasks) map.set(t.id, t);
+  for(const r of remoteTasks){
+    const l = map.get(r.id);
+    if(!l) map.set(r.id, r);
+    else map.set(r.id, (Number(r.updatedAt)||0) >= (Number(l.updatedAt)||0) ? r : l);
+  }
+  return [...map.values()];
+}
+
+/* =========================
+   Render
+========================= */
+function escapeHtml(str){
+  return (str ?? "").replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+function formatTime(t){ return t && t.length ? t : "--:--"; }
+function getSearchTerm(){
+  return (document.getElementById("searchInput").value || "").trim().toLowerCase();
+}
+
+function render(){
+  const term = getSearchTerm();
+
+  for(const day of DAYS){
+    const box = document.querySelector(`#${day} .tasks`);
+    if(box) box.innerHTML = "";
+  }
+
+  const tasks = [...state.tasks].sort((a,b) => {
+    if(a.day !== b.day) return DAYS.indexOf(a.day) - DAYS.indexOf(b.day);
+    return (a.time || "").localeCompare(b.time || "");
+  });
+
+  for(const t of tasks){
+    const matches = !term || (t.text || "").toLowerCase().includes(term);
+    if(!matches) continue;
+
+    const el = document.createElement("div");
+    el.className = "task" + (t.done ? " done" : "");
+    el.draggable = true;
+    el.dataset.id = t.id;
+
+    el.innerHTML = `
+      <div class="taskLeft">
+        <span class="time">${escapeHtml(formatTime(t.time))}</span>
+        <div class="desc">${escapeHtml(t.text)}</div>
+      </div>
+      <div class="taskRight">
+        <button class="iconBtn" data-action="toggle" title="Concluir/Desconcluir">✅</button>
+        <button class="iconBtn" data-action="edit" title="Editar">✏️</button>
+        <button class="iconBtn" data-action="delete" title="Excluir">🗑️</button>
+      </div>
+    `;
+
+    el.addEventListener("dragstart", onDragStart);
+    el.addEventListener("dragend", onDragEnd);
+
+    el.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if(!btn) return;
+      const action = btn.dataset.action;
+      if(action === "toggle") toggleDone(t.id);
+      if(action === "delete") deleteTask(t.id);
+      if(action === "edit") openEdit(t.id);
+    });
+
+    const target = document.querySelector(`#${t.day} .tasks`);
+    if(target) target.appendChild(el);
+  }
+
+  let total = 0;
+  for(const day of DAYS){
+    const count = state.tasks.filter(x => x.day === day).length;
+    total += count;
+    const label = document.getElementById(`count-${day}`);
+    if(label) label.textContent = count;
+  }
+  const totalChip = document.getElementById("totalChip");
+  if(totalChip) totalChip.textContent = `Total: ${total}`;
+}
+
+/* =========================
+   Sync (offline + online)
+========================= */
+let isSyncing = false;
+
+async function tryFlushQueues(){
+  if(state.pendingClearAll){
+    await apiPost({ action:"clearall" });
+    state.pendingClearAll = false;
+    state.pendingClearDays = [];
+    state.pendingDeletes = [];
+    save();
+  }
+
+  if(state.pendingClearDays.length){
+    const uniqueDays = [...new Set(state.pendingClearDays)];
+    for(const d of uniqueDays){
+      await apiPost({ action:"clearday", day:d });
+    }
+    state.pendingClearDays = [];
+    save();
+  }
+
+  if(state.pendingDeletes.length){
+    const uniqueIds = [...new Set(state.pendingDeletes)];
+    for(const id of uniqueIds){
+      await apiPost({ action:"delete", id });
+    }
+    state.pendingDeletes = [];
+    save();
+  }
+}
+
+async function pushLocalOnlyTasks(){
+  const locals = state.tasks.filter(t => isLocalOnlyId(t.id));
+  for(const t of locals){
+    const r = await apiPost({ action:"add", day:t.day, time:t.time, text:t.text, done:!!t.done });
+    if(r && r.ok && r.id){
+      t.id = r.id;
+      t.updatedAt = Number(r.updatedAt || Date.now());
+    }
+  }
+  if(locals.length){
+    save();
+    render();
+  }
+}
+
+async function pushUpdateToRemote(task){
+  if(isLocalOnlyId(task.id)) return;
+  const r = await apiPost({
+    action:"update",
+    id: task.id,
+    day: task.day,
+    time: task.time,
+    text: task.text,
+    done: !!task.done
+  });
+
+  if(r && r.ok && r.updatedAt){
+    task.updatedAt = Number(r.updatedAt);
+    save();
+  }
+}
+
+async function syncFromRemote(){
+  if(isSyncing) return;
+  isSyncing = true;
+
+  try{
+    setSyncStatus("warn", "Sincronizando…");
+
+    await tryFlushQueues();
+    await pushLocalOnlyTasks();
+
+    const remote = await apiGet("list");
+    if(remote && remote.ok){
+      const merged = mergeByUpdatedAt(state.tasks, remote.tasks || []);
+      state.tasks = merged;
+      save();
+      render();
+    }
+
+    setSyncStatus("ok", "Online (sync ok)");
+  }catch(e){
+    setSyncStatus("bad", "Offline (modo local)");
+  }finally{
+    isSyncing = false;
+  }
+}
+
+/* =========================
+   CRUD
+========================= */
+function addTask(){
+  const text = document.getElementById("taskInput").value.trim();
+  const time = document.getElementById("timeInput").value;
+  const checkedDays = [...document.querySelectorAll(".repeatDays input:checked")].map(cb => cb.value);
+
+  if(!text){ alert("Digite a tarefa."); return; }
+  if(!time){ alert("Informe o horário."); return; }
+  if(checkedDays.length === 0){ alert("Selecione ao menos um dia."); return; }
+
+  const now = Date.now();
+
+  checkedDays.forEach(day => {
+    state.tasks.push({
+      id: localId(),
+      day,
+      time,
+      text,
+      done: false,
+      createdAt: now,
+      updatedAt: now
+    });
+  });
+
+  save();
+  render();
+
+  document.getElementById("taskInput").value = "";
+  document.getElementById("timeInput").value = "";
+  document.querySelectorAll(".repeatDays input").forEach(cb => cb.checked = false);
+  document.getElementById("taskInput").focus();
+
+  syncFromRemote();
+}
+
+function deleteTask(id){
+  if(!confirm("Excluir esta tarefa?")) return;
+
+  if(!isLocalOnlyId(id)){
+    state.pendingDeletes.push(id);
+  }
+
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  save();
+  render();
+  syncFromRemote();
+}
+
+function toggleDone(id){
+  const t = state.tasks.find(x => x.id === id);
+  if(!t) return;
+
+  t.done = !t.done;
+  t.updatedAt = Date.now();
+  save();
+  render();
+
+  (async () => {
+    try{
+      if(!isLocalOnlyId(t.id)) await pushUpdateToRemote(t);
+      await syncFromRemote();
+    }catch(e){}
+  })();
+}
+
+function clearDay(day){
+  const count = state.tasks.filter(t => t.day === day).length;
+  if(count === 0) return;
+  if(!confirm(`Limpar todas as tarefas de ${day}?`)) return;
+
+  state.tasks = state.tasks.filter(t => t.day !== day);
+  state.pendingClearDays.push(day);
+
+  save();
+  render();
+  syncFromRemote();
+}
+
+function clearAll(){
+  if(state.tasks.length === 0) return;
+  if(!confirm("Limpar a semana inteira? (isso apaga tudo)")) return;
+
+  state.tasks = [];
+  state.pendingClearAll = true;
+
+  save();
+  render();
+  syncFromRemote();
+}
+
+/* =========================
+   Edição (modal)
+========================= */
+let editingId = null;
+
+function openEdit(id){
+  const t = state.tasks.find(x => x.id === id);
+  if(!t) return;
+  editingId = id;
+
+  document.getElementById("editTask").value = t.text || "";
+  document.getElementById("editTime").value = t.time || "";
+  document.getElementById("editDay").value  = t.day;
+
+  document.getElementById("backdrop").style.display = "flex";
+  document.getElementById("editTask").focus();
+}
+
+function closeEdit(){
+  editingId = null;
+  document.getElementById("backdrop").style.display = "none";
+}
+
+function saveEdit(){
+  if(!editingId) return;
+  const t = state.tasks.find(x => x.id === editingId);
+  if(!t) return;
+
+  const newText = document.getElementById("editTask").value.trim();
+  const newTime = document.getElementById("editTime").value;
+  const newDay  = document.getElementById("editDay").value;
+
+  if(!newText){ alert("Digite a tarefa."); return; }
+  if(!newTime){ alert("Informe o horário."); return; }
+
+  t.text = newText;
+  t.time = newTime;
+  t.day  = newDay;
+  t.updatedAt = Date.now();
+
+  save();
+  render();
+  closeEdit();
+
+  (async () => {
+    try{
+      if(!isLocalOnlyId(t.id)) await pushUpdateToRemote(t);
+      await syncFromRemote();
+    }catch(e){}
+  })();
+}
+
+/* =========================
+   Drag & Drop entre dias
+========================= */
+let draggedId = null;
+
+function onDragStart(e){
+  draggedId = e.currentTarget.dataset.id;
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", draggedId);
+  setTimeout(() => e.currentTarget.style.opacity = "0.6", 0);
+}
+function onDragEnd(e){
+  e.currentTarget.style.opacity = "1";
+  draggedId = null;
+  document.querySelectorAll(".day").forEach(d => d.classList.remove("dragover"));
+}
+
+function setupDropZones(){
+  document.querySelectorAll(".day").forEach(dayEl => {
+    dayEl.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dayEl.classList.add("dragover");
+      e.dataTransfer.dropEffect = "move";
+    });
+
+    dayEl.addEventListener("dragleave", () => {
+      dayEl.classList.remove("dragover");
+    });
+
+    dayEl.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dayEl.classList.remove("dragover");
+
+      const day = dayEl.dataset.day;
+      const id = e.dataTransfer.getData("text/plain") || draggedId;
+      if(!id) return;
+
+      const t = state.tasks.find(x => x.id === id);
+      if(!t) return;
+
+      t.day = day;
+      t.updatedAt = Date.now();
+      save();
+      render();
+
+      (async () => {
+        try{
+          if(!isLocalOnlyId(t.id)) await pushUpdateToRemote(t);
+          await syncFromRemote();
+        }catch(e){}
+      })();
+    });
+  });
+}
+
+/* =========================
+   Eventos
+========================= */
+function wireEvents(){
+  const addBtn = document.getElementById("addBtn");
+  const taskInput = document.getElementById("taskInput");
+  const searchInput = document.getElementById("searchInput");
+  const themeBtn = document.getElementById("themeBtn");
+  const clearAllBtn = document.getElementById("clearAllBtn");
+
+  if (addBtn) addBtn.addEventListener("click", addTask);
+  if (taskInput) taskInput.addEventListener("keydown", (e) => {
+    if(e.key === "Enter") addTask();
+  });
+
+  if (searchInput) searchInput.addEventListener("input", render);
+  if (themeBtn) themeBtn.addEventListener("click", toggleTheme);
+  if (clearAllBtn) clearAllBtn.addEventListener("click", clearAll);
+
+  document.querySelectorAll("[data-clear-day]").forEach(btn => {
+    btn.addEventListener("click", () => clearDay(btn.dataset.clearDay));
+  });
+
+  const cancelEdit = document.getElementById("cancelEdit");
+  const saveEditBtn = document.getElementById("saveEdit");
+  const backdrop = document.getElementById("backdrop");
+
+  if (cancelEdit) cancelEdit.addEventListener("click", closeEdit);
+  if (saveEditBtn) saveEditBtn.addEventListener("click", saveEdit);
+  if (backdrop) backdrop.addEventListener("click", (e) => {
+    if(e.target.id === "backdrop") closeEdit();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if(e.key === "Escape") closeEdit();
+  });
+
+  window.addEventListener("online", () => { setSyncStatus("warn","Online (sincronizando…)"); syncFromRemote(); });
+  window.addEventListener("offline", () => { setSyncStatus("bad","Offline (modo local)"); });
+}
+
+/* =========================
+   Init
+========================= */
+(function init(){
+  loadTheme();
+  load();
+  setupDropZones();
+  wireEvents();
+  render();
+
+  if(navigator.onLine) setSyncStatus("warn", "Online (sincronizando…)"); else setSyncStatus("bad","Offline (modo local)");
+
+  syncFromRemote();
+  setInterval(syncFromRemote, SYNC_EVERY_MS);
+})();
+</script>
+</body>
+</html>
